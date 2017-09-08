@@ -62,5 +62,9 @@ public class MemberService {
 		
 		return memberVO;	// 이걸 갖고 로그인 되어있는 상태로 만들어줘야함, 컨트롤러에서 세션에 저장해야함
 	}
+	
+	public MemberVO getMemberDetail(String uid) {
+		return memberDAO.selectMemberDetail(uid);
+	}
 
 }

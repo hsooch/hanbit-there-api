@@ -23,5 +23,9 @@ public class MemberDAO {
 	public MemberVO selectMember(String email) {
 		return sqlSession.selectOne("member.selectMember", email);
 	}
+	
+	public MemberVO selectMemberDetail(String uid) {
+		return sqlSession.selectOne("member.selectMemberDetail", uid);
+	}
 
 }
