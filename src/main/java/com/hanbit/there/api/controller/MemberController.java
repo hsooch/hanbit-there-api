@@ -127,8 +127,8 @@ public class MemberController {
 	
 	@SignInRequired
 	@PostMapping("/save")
-	public Map<Object, Object> saveMemberDetail(@RequestParam("Member") String json,
-												@RequestParam("avatar") MultipartFile image,
+	public Map<Object, Object> saveMemberDetail(@RequestParam("member") String json,
+												@RequestParam(value="avatar", required=false) MultipartFile image,	// 필수값이 아니게
 												HttpSession session) throws Exception {
 		
 		MemberVO memberVO = objectMapper.readValue(json, MemberVO.class);
