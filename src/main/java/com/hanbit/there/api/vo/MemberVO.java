@@ -4,6 +4,7 @@ public class MemberVO {
 
 	private String uid;
 	private String email;
+	private String currentPw;
 	private String password;
 	private String createDt;
 	private String createdBy;
@@ -23,6 +24,14 @@ public class MemberVO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getCurrentPw() {
+		return currentPw;
+	}
+
+	public void setCurrentPw(String currentPw) {
+		this.currentPw = currentPw;
 	}
 
 	public String getPassword() {

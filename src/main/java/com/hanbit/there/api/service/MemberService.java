@@ -1,13 +1,19 @@
 package com.hanbit.there.api.service;
 
+import java.io.IOException;
 import java.util.Random;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hanbit.there.api.dao.MemberDAO;
 import com.hanbit.there.api.exception.HanbitException;
+import com.hanbit.there.api.vo.FileVO;
 import com.hanbit.there.api.vo.MemberVO;
 
 @Service
@@ -19,6 +25,8 @@ public class MemberService {
 	private MemberDAO memberDAO;
 	@Autowired
 	private PasswordEncoder passwordEncoder; // SecurityConfig 클래스에 빈 으로 등록 해놓음
+	@Autowired
+	private FileService fileService;
 
 	public void signUp(MemberVO memberVO) {
 		if (memberDAO.countMember(memberVO.getEmail()) > 0) {
@@ -65,6 +73,51 @@ public class MemberService {
 	
 	public MemberVO getMemberDetail(String uid) {
 		return memberDAO.selectMemberDetail(uid);
+	}
+	
+	@Transactional
+	public void saveMemberDetail(MemberVO memberVO, MultipartFile image) throws IOException {
+		// 사진이 있으면
+		if (image != null) {
+			FileVO fileVO = new FileVO();
+			
+			String fileId = "avatar-" + memberVO.getUid();
+			fileVO.setFileId(fileId);
+			
+			String fileExt = FilenameUtils.getExtension(image.getOriginalFilename());
+			String fileName = memberVO.getUid() + "." + fileExt;
+			fileVO.setFileName(fileName);
+			fileVO.setFilePath("/hanbit/webpack/hanbit-there/src/img/avatars/" + fileName);
+			
+			fileVO.setContentType(image.getContentType());
+			fileVO.setContentLength(image.getSize());
+			
+			fileService.modifyFile(fileVO, image.getInputStream());
+			memberVO.getDetail().setAvatar("/api/file/" + fileId);
+		}
+		
+		memberDAO.insertMemberDetail(memberVO);
+		
+		// 패스워드가 있으면
+		if (StringUtils.isNotBlank(memberVO.getCurrentPw())) {
+			changePassword(memberVO.getUid(), memberVO.getCurrentPw(), memberVO.getPassword());
+		}
+	}
+	
+	private void changePassword(String uid, String currentPw, String newPw) {
+		String encodedPw = memberDAO.selectPassword(uid);	// 암호화 된 패스워드
+		
+		if (!passwordEncoder.matches(currentPw, encodedPw)) {
+			throw new HanbitException("현재 패스워드가 일치하지 않습니다.");
+		}
+		
+		String password = passwordEncoder.encode(newPw);
+		
+		MemberVO memberVO = new MemberVO();
+		memberVO.setUid(uid);
+		memberVO.setPassword(password);
+		
+		memberDAO.updatePassword(memberVO);
 	}
 
 }

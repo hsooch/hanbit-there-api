@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.WebUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hanbit.there.api.HanbitConstatns;
 import com.hanbit.there.api.annotation.SignInRequired;
 import com.hanbit.there.api.service.MemberService;
@@ -28,6 +30,8 @@ public class MemberController {
 	
 	// Logger 객체 생성
 	private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
+	
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
 	private MemberService memberService;
@@ -119,6 +123,23 @@ public class MemberController {
 		String uid = (String) session.getAttribute("uid");
 		
 		return memberService.getMemberDetail(uid);
+	}
+	
+	@SignInRequired
+	@PostMapping("/save")
+	public Map<Object, Object> saveMemberDetail(@RequestParam("Member") String json,
+												@RequestParam("avatar") MultipartFile image,
+												HttpSession session) throws Exception {
+		
+		MemberVO memberVO = objectMapper.readValue(json, MemberVO.class);
+		memberVO.setUid((String) session.getAttribute("uid"));
+		
+		memberService.saveMemberDetail(memberVO, image);
+		
+		Map<Object, Object> result = new HashMap<>();
+		result.put("status", "ok");
+		
+		return result;
 	}
 	
 }
