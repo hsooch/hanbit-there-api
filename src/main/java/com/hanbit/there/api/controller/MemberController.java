@@ -56,7 +56,7 @@ public class MemberController {
 	public Map<Object, Object> signIn(@RequestParam("email") String email,
 									  @RequestParam("password") String password,
 									  @RequestParam("remember") boolean remember,
-									  HttpSession session,				// session 에 아무값이나 담을 수 있다
+									  HttpSession session,				// session 에 아무값이나 담을 수 있다 근데 필요한것만 넣어야지 아무거나 막 넣음 안됨
 									  HttpServletResponse response) {	// 쿠키를 주려면 이 객체가 있어야함
 		
 		MemberVO memberVO = memberService.signIn(email, password);
@@ -73,6 +73,10 @@ public class MemberController {
 		session.setAttribute(HanbitConstatns.SIGNIN_KEY, true);
 		session.setAttribute("uid", memberVO.getUid());
 		session.setAttribute("email", memberVO.getEmail());
+		
+		if (memberVO.getDetail() != null) {	// null 이면 에러뜸
+			session.setAttribute("avatar", memberVO.getDetail().getAvatar());
+		}
 		
 		Map<Object, Object> result = new HashMap<>();
 		result.put("email", memberVO.getEmail());
@@ -91,6 +95,7 @@ public class MemberController {
 		else {
 			member.put(HanbitConstatns.SIGNIN_KEY, true);
 			member.put("email", session.getAttribute("email"));
+			member.put("avatar", session.getAttribute("avatar"));	// signIn() 에서 넣은 세션에 있는 아바타를 꺼내줌
 		}
 		
 		return member;
@@ -116,7 +121,7 @@ public class MemberController {
 		return result;
 	}
 	
-	// uid 를 위에 signIn() 에서 어트리뷰트한 세션에서 꺼내올거임
+	// uid 를 signIn() 에서 어트리뷰트한 세션에서 꺼내올거임
 	@SignInRequired
 	@RequestMapping("/detail")
 	public MemberVO getMemberDetail(HttpSession session) {
